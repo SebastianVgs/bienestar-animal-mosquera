@@ -2,19 +2,30 @@ import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'features/home/presentation/pages/home_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 
 Future<void> main() async {
-  // 1. Asegurarnos de que Flutter esté listo antes de arrancar la BD
   WidgetsFlutterBinding.ensureInitialized();
+  
+  print('--- INICIANDO PRUEBA DE RED QUIRÚRGICA ---');
+  try {
+    final response = await http.get(Uri.parse('https://www.google.com'));
+    print('✅ INTERNET DART OK: Código ${response.statusCode}');
+  } catch(e) {
+    print('❌ SIN INTERNET EN DART: $e');
+  }
+  print('-------------------------------------------');
 
-  // 2. Inicializar la conexión con tu proyecto en la nube
+  await dotenv.load(fileName: ".env");
+
+  // Revisa quirúrgicamente esta URL en tu código
   await Supabase.initialize(
     url: 'https://dygoihumliloeizwplvo.supabase.co',
-    publishableKey: 'sb_publishable_F6QHSikjeO0UrQmriyF8Tw_afvpu8Gp',
+    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
 
-  // 3. Arrancar la aplicación (asegúrate de que MyApp sea el nombre de tu clase principal)
-  runApp(const BienestarAnimalApp());
+  runApp(const BienestarAnimalApp()); // O el nombre de tu clase
 }
 
 class BienestarAnimalApp extends StatelessWidget {

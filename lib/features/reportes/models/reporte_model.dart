@@ -5,6 +5,10 @@ class ReporteModel {
   final String? evidenciaUrl;
   final String estado;
   final String fecha;
+  
+  // 1. NUEVOS CAMPOS DE LA IA (Opcionales, por si los reportes viejos no los tienen)
+  final String? iaGravedad;
+  final String? iaResumen;
 
   ReporteModel({
     this.id,
@@ -13,15 +17,17 @@ class ReporteModel {
     this.evidenciaUrl,
     required this.estado,
     required this.fecha,
+    this.iaGravedad,
+    this.iaResumen,
   });
 
   factory ReporteModel.fromJson(Map<String, dynamic> json) {
     try {
-      // 1. Obtenemos el valor crudo de la evidencia
+      // Obtenemos el valor crudo de la evidencia
       final rawEvidencia = json['evidencia_url'];
       String? finalUrl;
 
-      // 2. Validamos que sea un texto y que realmente parezca un enlace HTTP
+      // Validamos que sea un texto y que realmente parezca un enlace HTTP
       if (rawEvidencia != null) {
         final stringValue = rawEvidencia.toString();
         if (stringValue.startsWith('http')) {
@@ -30,18 +36,20 @@ class ReporteModel {
       }
 
       return ReporteModel(
-        id: json['id']?.toString() ?? 'ID_NO_DISPONIBLE', // Protegido contra nulos
-        descripcion: json['descripcion']?.toString() ?? 'Sin descripción', // Protegido
-        direccion: json['direccion']?.toString() ?? 'Sin dirección', // Protegido
+        id: json['id']?.toString() ?? 'ID_NO_DISPONIBLE',
+        descripcion: json['descripcion']?.toString() ?? 'Sin descripción',
+        direccion: json['direccion']?.toString() ?? 'Sin dirección',
         evidenciaUrl: finalUrl, 
-        estado: json['estado']?.toString() ?? 'RECIBIDO', // Protegido
-        fecha: json['creado_en']?.toString() ?? 'Fecha no disponible', // Protegido
+        estado: json['estado']?.toString() ?? 'RECIBIDO',
+        fecha: json['creado_en']?.toString() ?? 'Fecha no disponible',
+        
+        // 2. MAPEO DE LOS NUEVOS CAMPOS DE LA IA
+        iaGravedad: json['ia_gravedad']?.toString(),
+        iaResumen: json['ia_resumen']?.toString(),
       );
     } catch (e) {
-      // Si falla algo durante la conversión, imprimimos el error pero no rompemos la app
       print('🔥 Error Mapeando JSON en ReporteModel: $e');
       print('Datos que causaron el error: $json');
-      // Devolvemos un reporte de "error" por defecto para que la lista siga funcionando
       return ReporteModel(
         id: 'ERROR',
         descripcion: 'Error al leer este reporte de la base de datos.',

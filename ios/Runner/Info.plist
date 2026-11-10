@@ -72,5 +72,10 @@
     <string>Necesitamos acceso a la cámara para que puedas adjuntar fotos como evidencia del reporte.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Necesitamos acceso a tu galería para subir evidencia del reporte.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>
