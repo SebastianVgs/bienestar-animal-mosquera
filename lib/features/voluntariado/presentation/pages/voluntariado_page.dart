@@ -101,138 +101,182 @@ class _VoluntariadoPageState extends State<VoluntariadoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'HOGARES DE PASO',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Banner Informativo
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.secondary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.home_work_rounded, color: AppColors.secondary, size: 40),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Text(
-                        'Actualmente nuestro refugio municipal se encuentra en su capacidad máxima. ¡Postúlate como hogar de paso y salva una vida!',
-                        style: TextStyle(color: Colors.grey[800], fontSize: 14),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              const Text('Datos del Voluntario', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-
-              // Campo Nombre
-              TextFormField(
-                controller: _nombreController,
-                decoration: InputDecoration(
-                  labelText: 'Nombre Completo',
-                  prefixIcon: const Icon(Icons.person),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                validator: (value) => value!.isEmpty ? 'Por favor ingresa tu nombre' : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Campo Teléfono
-              TextFormField(
-                controller: _telefonoController,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  labelText: 'Teléfono de Contacto',
-                  prefixIcon: const Icon(Icons.phone),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                validator: (value) => value!.isEmpty ? 'Por favor ingresa tu teléfono' : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Campo Dirección
-              TextFormField(
-                controller: _direccionController,
-                decoration: InputDecoration(
-                  labelText: 'Dirección de Residencia',
-                  prefixIcon: const Icon(Icons.location_on),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                validator: (value) => value!.isEmpty ? 'Por favor ingresa tu dirección' : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Dropdown Tipo de Vivienda
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Tipo de Vivienda',
-                  prefixIcon: const Icon(Icons.house),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                items: ['Casa propia', 'Casa en arriendo', 'Apartamento', 'Finca/Lote']
-                    .map((tipo) => DropdownMenuItem(value: tipo, child: Text(tipo)))
-                    .toList(),
-                onChanged: (value) => setState(() => _tipoVivienda = value),
-                validator: (value) => value == null ? 'Selecciona el tipo de vivienda' : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Switch ¿Tiene mascotas?
-              SwitchListTile(
-                title: const Text('¿Tienes otras mascotas actualmente?'),
-                value: _tieneMascotas,
-                activeColor: AppColors.primary,
-                onChanged: (bool value) {
-                  setState(() => _tieneMascotas = value);
-                },
-              ),
-              const SizedBox(height: 32),
-
-              // Botón de Envío
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: _isLoading ? null : _enviarPostulacion,
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        )
-                      : const Text(
-                          'Enviar Postulación',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+      backgroundColor: AppColors.background, // Usa el mismo color de fondo hueso/gris claro
+      body: SafeArea(
+        child: Column(
+          children: [
+            // NUEVO ENCABEZADO UNIFICADO
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: _buildHeader(context),
+            ),
+            
+            // EL RESTO DEL FORMULARIO
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Banner Informativo
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.secondary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
                         ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.home_work_rounded, color: AppColors.secondary, size: 40),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                'Actualmente nuestro refugio municipal se encuentra en su capacidad máxima. ¡Postúlate como hogar de paso y salva una vida!',
+                                style: TextStyle(color: Colors.grey[800], fontSize: 14),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      const Text('Datos del Voluntario', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 16),
+
+                      // Campo Nombre
+                      TextFormField(
+                        controller: _nombreController,
+                        decoration: InputDecoration(
+                          labelText: 'Nombre Completo',
+                          prefixIcon: const Icon(Icons.person),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        validator: (value) => value!.isEmpty ? 'Por favor ingresa tu nombre' : null,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Campo Teléfono
+                      TextFormField(
+                        controller: _telefonoController,
+                        keyboardType: TextInputType.phone,
+                        decoration: InputDecoration(
+                          labelText: 'Teléfono de Contacto',
+                          prefixIcon: const Icon(Icons.phone),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        validator: (value) => value!.isEmpty ? 'Por favor ingresa tu teléfono' : null,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Campo Dirección
+                      TextFormField(
+                        controller: _direccionController,
+                        decoration: InputDecoration(
+                          labelText: 'Dirección de Residencia',
+                          prefixIcon: const Icon(Icons.location_on),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        validator: (value) => value!.isEmpty ? 'Por favor ingresa tu dirección' : null,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Dropdown Tipo de Vivienda
+                      DropdownButtonFormField<String>(
+                        decoration: InputDecoration(
+                          labelText: 'Tipo de Vivienda',
+                          prefixIcon: const Icon(Icons.house),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        items: ['Casa propia', 'Casa en arriendo', 'Apartamento', 'Finca/Lote']
+                            .map((tipo) => DropdownMenuItem(value: tipo, child: Text(tipo)))
+                            .toList(),
+                        onChanged: (value) => setState(() => _tipoVivienda = value),
+                        validator: (value) => value == null ? 'Selecciona el tipo de vivienda' : null,
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Switch ¿Tiene mascotas?
+                      SwitchListTile(
+                        title: const Text('¿Tienes otras mascotas actualmente?'),
+                        value: _tieneMascotas,
+                        activeColor: AppColors.primary,
+                        onChanged: (bool value) {
+                          setState(() => _tieneMascotas = value);
+                        },
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Botón de Envío
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          onPressed: _isLoading ? null : _enviarPostulacion,
+                          child: _isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                )
+                              : const Text(
+                                  'Enviar Postulación',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // MÉTODO PARA CREAR EL ENCABEZADO UNIFICADO
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: AppColors.circularButtonBackground,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 4, offset: const Offset(0, 2)),
             ],
           ),
+          child: IconButton(
+            padding: EdgeInsets.zero,
+            icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: AppColors.circularButtonIcon),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
-      ),
+        const Expanded(
+          child: Text(
+            'HOGARES DE PASO',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+              color: AppColors.textPrimary,
+              letterSpacing: -0.1,
+            ),
+          ),
+        ),
+        const SizedBox(width: 42), // Balance visual para centrar el título
+      ],
     );
   }
 }
