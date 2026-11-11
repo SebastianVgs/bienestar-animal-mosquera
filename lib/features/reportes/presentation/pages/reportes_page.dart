@@ -7,6 +7,7 @@ import 'package:bienestar_animal_app/features/reportes/data/reporte_repository.d
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'detalle_reporte_page.dart';
 
 class ReportesPage extends StatefulWidget {
   const ReportesPage({super.key});
@@ -22,6 +23,7 @@ class _ReportesPageState extends State<ReportesPage> {
   final _formKey = GlobalKey<FormState>();
   final _descriptionController = TextEditingController();
   final _addressController = TextEditingController();
+  final _phoneController = TextEditingController();
 
   bool _isSubmitting = false;
   bool _useGpsLocation = false;
@@ -47,6 +49,7 @@ class _ReportesPageState extends State<ReportesPage> {
   void dispose() {
     _descriptionController.dispose();
     _addressController.dispose();
+    _phoneController.dispose();
     super.dispose();
   }
 
@@ -89,18 +92,51 @@ class _ReportesPageState extends State<ReportesPage> {
   }
 
   // Implementación de adjunto de fotografía
-  Future<void> _addEvidence() async {
+  // 1. Mostrar menú de opciones (Cámara o Galería)
+  void _showImageSourceActionSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo_camera, color: AppColors.primary),
+                title: const Text('Tomar foto con la cámara'),
+                onTap: () {
+                  Navigator.of(context).pop(); // Cierra el menú
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library, color: AppColors.primary),
+                title: const Text('Elegir de la galería'),
+                onTap: () {
+                  Navigator.of(context).pop(); // Cierra el menú
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // 2. Capturar la imagen según la opción elegida
+  Future<void> _pickImage(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
     
-    // Abre la cámara del celular
     final XFile? photo = await picker.pickImage(
-      source: ImageSource.camera,
-      imageQuality: 70, // Comprimimos un poco para no saturar Supabase
+      source: source,
+      imageQuality: 70, // Mantenemos la compresión para optimizar Supabase
     );
 
     if (photo != null) {
       setState(() {
-        // Guardamos la ruta temporal de la foto en tu lista
         _attachedImages.add(photo.path);
       });
     }
@@ -132,9 +168,23 @@ class _ReportesPageState extends State<ReportesPage> {
     });
 
     try {
+      // --- NUEVA LÓGICA PARA LA DIRECCIÓN ---
+      String direccionFinal = _addressController.text.trim();
+      
+      // Si el usuario usó GPS y la dirección está vacía, creamos un string con las coordenadas
+      if (_useGpsLocation && direccionFinal.isEmpty && _currentLat != null && _currentLng != null) {
+        // Formateamos las coordenadas a 5 decimales para mayor legibilidad
+        direccionFinal = 'Ubicación GPS: ${_currentLat!.toStringAsFixed(5)}, ${_currentLng!.toStringAsFixed(5)}';
+      } else if (direccionFinal.isEmpty) {
+         // Por si acaso se cuela una validación, le damos un valor por defecto
+         direccionFinal = 'Ubicación no proporcionada';
+      }
+      // --------------------------------------
+
       await ReporteRepository.crearReporte(
         description: _descriptionController.text.trim(),
-        address: _addressController.text.trim(),
+        address: direccionFinal, 
+        telefono: _phoneController.text.trim(), // <--- AÑADE ESTO
         latitude: _currentLat,
         longitude: _currentLng,
         localEvidencePaths: _attachedImages,
@@ -144,10 +194,13 @@ class _ReportesPageState extends State<ReportesPage> {
 
       // Limpieza de formulario
       _descriptionController.clear();
+      _phoneController.clear();
       _addressController.clear();
       setState(() {
         _attachedImages.clear();
         _useGpsLocation = false;
+        _currentLat = null; // Es buena práctica limpiar también las coordenadas
+        _currentLng = null;
         _selectedTabIndex = 1; // Cambiar a la vista de historial
       });
 
@@ -389,7 +442,24 @@ class _ReportesPageState extends State<ReportesPage> {
             ),
             const SizedBox(height: 16),
 
-            // Campo 2: Ubicación / Dirección
+            // Campo 2: Teléfono
+            TextFormField(
+              controller: _phoneController,
+              keyboardType: TextInputType.phone,
+              decoration: _buildInputDecoration(
+                label: 'Teléfono de contacto',
+                icon: Icons.phone_outlined,
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Por favor ingrese un número de contacto.';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+
+            // Campo 3: Ubicación / Dirección
             TextFormField(
               controller: _addressController,
               readOnly: _useGpsLocation,
@@ -485,7 +555,7 @@ class _ReportesPageState extends State<ReportesPage> {
 
             // Botón de adjuntar
             InkWell(
-              onTap: _addEvidence,
+              onTap: () => _showImageSourceActionSheet(context),
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 width: double.infinity,
@@ -572,7 +642,18 @@ class _ReportesPageState extends State<ReportesPage> {
                               reporte.evidenciaUrl!.startsWith('http');
 
             return Card(
-              margin: const EdgeInsets.only(bottom: 12),
+            margin: const EdgeInsets.only(bottom: 12),
+            clipBehavior: Clip.antiAlias, // Esto asegura que el efecto de clic no se salga de los bordes curvos
+            child: InkWell(
+              onTap: () {
+                // Navegación a la página de detalles
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DetalleReportePage(reporte: reporte),
+                  ),
+                );
+              },
               child: ListTile(
                 leading: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
@@ -610,14 +691,10 @@ class _ReportesPageState extends State<ReportesPage> {
                 ),
                 title: Text(reporte.descripcion, maxLines: 1, overflow: TextOverflow.ellipsis),
                 subtitle: Text('Estado: ${reporte.estado}'),
-                trailing: Text(
-                  reporte.fecha.isNotEmpty && reporte.fecha.length >= 10 
-                      ? reporte.fecha.substring(0, 10) 
-                      : '',
-                  style: const TextStyle(fontSize: 12),
-                ),
+                trailing: const Icon(Icons.chevron_right, color: Colors.grey), // Flecha indicadora de navegación
               ),
-            );
+            ),
+          );
           },
         );
       },

@@ -31,10 +31,12 @@ class OpenAIService {
     Eres un analista experto en bienestar animal trabajando para la Alcaldía de Mosquera.
     Tu tarea es analizar el reporte de un ciudadano y la fotografía adjunta.
     
-    REGLA DE ORO: Si la descripción y la imagen NO tienen absolutamente nada que ver con animales o con un caso de bienestar animal, debes rechazarlo.
+    REGLA FUNDAMENTAL: Si la descripción describe un caso claro de maltrato o abandono animal, pero la imagen no muestra explícitamente a un animal (puede ser una casa, un patio, un vehículo, o una foto de baja calidad), asume que la descripción es verídica y clasifica la gravedad basándote PRINCIPALMENTE en el texto.
+    
+    REGLA DE RECHAZO: SOLO debes rechazar el reporte si TANTO la descripción como la imagen son evidentes engaños, spam, o problemas no relacionados (ej: "Semáforo dañado", "Bache en la vía", etc.).
     
     Debes devolver ÚNICAMENTE un objeto JSON válido con estas dos claves:
-    1. "gravedad": Clasifica el caso en "Baja", "Media", "Alta" (Alta es riesgo de muerte o abuso extremo). Si el reporte es spam o no tiene relación con animales, pon "Rechazado".
+    1. "gravedad": Clasifica el caso en "Baja", "Media", "Alta" (Alta es riesgo de muerte o abuso extremo). Si el reporte es spam evidente, pon "Rechazado".
     2. "resumen": Un resumen técnico, objetivo y corto (máximo 20 palabras) para las autoridades. Si fue rechazado, escribe "Reporte no pertinente a bienestar animal".
     
     Descripción del ciudadano: $descripcion

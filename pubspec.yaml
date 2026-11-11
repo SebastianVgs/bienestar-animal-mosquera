@@ -41,6 +41,7 @@ dependencies:
   image_picker: ^1.1.2
   geolocator: ^13.0.0
   http: ^1.2.1 
+  flutter_native_splash: ^2.4.8
 
 dev_dependencies:
   flutter_test:
@@ -99,3 +100,12 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_native_splash:
+  color: "#ffffff"
+  image: "assets/images/escudo_mosquera.png"
+  
+  # Desactivamos el comportamiento por defecto de Android 12
+  android_12:
+    image: "assets/images/escudo_mosquera.png"
+    # Al no definir icon_background_color, evitamos el círculo forzado

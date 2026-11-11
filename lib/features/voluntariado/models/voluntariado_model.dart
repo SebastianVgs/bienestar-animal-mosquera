@@ -6,6 +6,8 @@ class VoluntariadoModel {
   final String direccion;
   final String tipoVivienda;
   final bool tieneMascotas;
+  final int? cantidadMascotas;
+  final String? tipoMascotas;
 
   const VoluntariadoModel({
     required this.nombreCompleto,
@@ -13,6 +15,8 @@ class VoluntariadoModel {
     required this.direccion,
     required this.tipoVivienda,
     required this.tieneMascotas,
+    this.cantidadMascotas,
+    this.tipoMascotas,
   });
 
   Map<String, dynamic> toMap() {
@@ -22,6 +26,8 @@ class VoluntariadoModel {
       'direccion': direccion,
       'tipo_vivienda': tipoVivienda,
       'tiene_mascotas': tieneMascotas,
+      'cantidad_mascotas': cantidadMascotas,
+      'tipo_mascotas': tipoMascotas,
     };
   }
 }

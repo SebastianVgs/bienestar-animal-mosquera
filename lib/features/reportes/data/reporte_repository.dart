@@ -12,6 +12,7 @@ class ReporteRepository {
   static Future<void> crearReporte({
     required String description,
     required String address,
+    required String telefono,
     required double? latitude,
     required double? longitude,
     required List<String> localEvidencePaths,
@@ -22,7 +23,6 @@ class ReporteRepository {
       String primeraImagenUrl = '';
 
       // 1. Subir foto
-      print('1. Subiendo imagen a Supabase Storage...');
       for (String path in localEvidencePaths) {
         final file = File(path);
         final fileName = '${DateTime.now().millisecondsSinceEpoch}_${path.split('/').last}';
@@ -33,38 +33,29 @@ class ReporteRepository {
 
       if (imageUrls.isNotEmpty) {
         primeraImagenUrl = imageUrls.first;
-        print('Imagen subida exitosamente: $primeraImagenUrl');
       }
 
       // 2. Llamada a OpenAI
       Map<String, dynamic> analisisIA = {'gravedad': 'Desconocida', 'resumen': 'Sin análisis'};
       if (description.isNotEmpty && primeraImagenUrl.isNotEmpty) {
-        print('2. Llamando a OpenAI...');
         analisisIA = await OpenAIService.analizarReporte(description, primeraImagenUrl);
-        print('Respuesta IA: $analisisIA');
       }
 
       // 3. Insertar en Base de Datos
-      print('3. Guardando en la tabla reportes_maltrato...');
-      
       final datosAInsertar = {
         'descripcion': description,
         'direccion': address,
-        // Si la BD exige que no sean nulos, asegúrate de enviar un valor por defecto si falló el GPS
-        'latitud': latitude ?? 4.7093, 
+        'telefono_contacto': telefono, // NUEVO DATO A INSERTAR
+        'latitud': latitude ?? 4.7093,
         'longitud': longitude ?? -74.2278,
         'evidencia_url': primeraImagenUrl,
         'estado': 'RECIBIDO',
-        // OJO: Si nivel_urgencia es obligatorio en tu BD, déjalo. Si lo ibas a reemplazar por ia_gravedad, quítalo.
-        'nivel_urgencia': analisisIA['gravedad'], 
+        'nivel_urgencia': analisisIA['gravedad'],
         'ia_gravedad': analisisIA['gravedad'],
         'ia_resumen': analisisIA['resumen']
       };
-      
-      print('Datos a enviar: $datosAInsertar');
 
       await _supabase.from('reportes_maltrato').insert(datosAInsertar);
-      
       print('--- REPORTE CREADO EXITOSAMENTE ---');
       
     } catch (e) {

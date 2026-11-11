@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart'; 
-import '../../models/voluntariado_model.dart';   
+import '../../../../core/constants/app_colors.dart';
+import '../../models/voluntariado_model.dart';
 import '../../data/voluntariado_repository.dart';
 
 class VoluntariadoPage extends StatefulWidget {
@@ -14,37 +14,43 @@ class _VoluntariadoPageState extends State<VoluntariadoPage> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
 
-  // Controladores para capturar los datos (Listos para enviar a Supabase luego)
+  // Controladores principales
   final _nombreController = TextEditingController();
   final _telefonoController = TextEditingController();
   final _direccionController = TextEditingController();
   String? _tipoVivienda;
   bool _tieneMascotas = false;
 
+  // NUEVOS Controladores condicionales
+  final _cantidadMascotasController = TextEditingController();
+  final _tipoMascotasController = TextEditingController();
+
   @override
   void dispose() {
     _nombreController.dispose();
     _telefonoController.dispose();
     _direccionController.dispose();
+    _cantidadMascotasController.dispose();
+    _tipoMascotasController.dispose();
     super.dispose();
   }
 
-  // Función conectada a Supabase
   Future<void> _enviarPostulacion() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
       try {
-        // 1. Armamos el objeto con los datos del formulario
         final postulacion = VoluntariadoModel(
           nombreCompleto: _nombreController.text.trim(),
           telefono: _telefonoController.text.trim(),
           direccion: _direccionController.text.trim(),
           tipoVivienda: _tipoVivienda ?? 'No especificado',
           tieneMascotas: _tieneMascotas,
+          // Guardamos los campos extra solo si el switch está encendido
+          cantidadMascotas: _tieneMascotas ? int.tryParse(_cantidadMascotasController.text) : null,
+          tipoMascotas: _tieneMascotas ? _tipoMascotasController.text.trim() : null,
         );
 
-        // 2. Lo enviamos a Supabase
         await VoluntariadoRepository.enviarPostulacion(postulacion);
 
         if (mounted) {
@@ -83,12 +89,12 @@ class _VoluntariadoPageState extends State<VoluntariadoPage> {
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary, // Tu color institucional
+                backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
               onPressed: () {
-                Navigator.pop(context); // Cierra el diálogo
-                Navigator.pop(context); // Regresa al menú principal
+                Navigator.pop(context);
+                Navigator.pop(context);
               },
               child: const Text('Entendido', style: TextStyle(color: Colors.white)),
             ),
@@ -101,17 +107,14 @@ class _VoluntariadoPageState extends State<VoluntariadoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background, // Usa el mismo color de fondo hueso/gris claro
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
-            // NUEVO ENCABEZADO UNIFICADO
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: _buildHeader(context),
             ),
-            
-            // EL RESTO DEL FORMULARIO
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20.0),
@@ -120,7 +123,6 @@ class _VoluntariadoPageState extends State<VoluntariadoPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Banner Informativo
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
@@ -146,7 +148,6 @@ class _VoluntariadoPageState extends State<VoluntariadoPage> {
                       const Text('Datos del Voluntario', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 16),
 
-                      // Campo Nombre
                       TextFormField(
                         controller: _nombreController,
                         decoration: InputDecoration(
@@ -158,7 +159,6 @@ class _VoluntariadoPageState extends State<VoluntariadoPage> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Campo Teléfono
                       TextFormField(
                         controller: _telefonoController,
                         keyboardType: TextInputType.phone,
@@ -171,7 +171,6 @@ class _VoluntariadoPageState extends State<VoluntariadoPage> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Campo Dirección
                       TextFormField(
                         controller: _direccionController,
                         decoration: InputDecoration(
@@ -183,7 +182,6 @@ class _VoluntariadoPageState extends State<VoluntariadoPage> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Dropdown Tipo de Vivienda
                       DropdownButtonFormField<String>(
                         decoration: InputDecoration(
                           labelText: 'Tipo de Vivienda',
@@ -198,18 +196,67 @@ class _VoluntariadoPageState extends State<VoluntariadoPage> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Switch ¿Tiene mascotas?
                       SwitchListTile(
                         title: const Text('¿Tienes otras mascotas actualmente?'),
                         value: _tieneMascotas,
                         activeColor: AppColors.primary,
                         onChanged: (bool value) {
-                          setState(() => _tieneMascotas = value);
+                          setState(() {
+                            _tieneMascotas = value;
+                            // Si lo apaga, limpiamos los campos extra
+                            if (!value) {
+                              _cantidadMascotasController.clear();
+                              _tipoMascotasController.clear();
+                            }
+                          });
                         },
                       ),
+                      
+                      // NUEVO: CAMPOS CONDICIONALES
+                      // Usamos AnimatedSize para que la expansión sea suave
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 300),
+                        child: _tieneMascotas
+                            ? Column(
+                                children: [
+                                  const SizedBox(height: 16),
+                                  TextFormField(
+                                    controller: _cantidadMascotasController,
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      labelText: '¿Cuántas mascotas tienes?',
+                                      prefixIcon: const Icon(Icons.numbers),
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                    validator: (value) {
+                                      if (_tieneMascotas && (value == null || value.isEmpty)) {
+                                        return 'Por favor indica la cantidad';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: 16),
+                                  TextFormField(
+                                    controller: _tipoMascotasController,
+                                    decoration: InputDecoration(
+                                      labelText: '¿Qué tipo? (Ej. 2 perros, 1 gato)',
+                                      prefixIcon: const Icon(Icons.pets),
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                    validator: (value) {
+                                      if (_tieneMascotas && (value == null || value.isEmpty)) {
+                                        return 'Por favor indica el tipo de mascotas';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ],
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+
                       const SizedBox(height: 32),
 
-                      // Botón de Envío
                       SizedBox(
                         width: double.infinity,
                         height: 50,
@@ -242,7 +289,6 @@ class _VoluntariadoPageState extends State<VoluntariadoPage> {
     );
   }
 
-  // MÉTODO PARA CREAR EL ENCABEZADO UNIFICADO
   Widget _buildHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -275,7 +321,7 @@ class _VoluntariadoPageState extends State<VoluntariadoPage> {
             ),
           ),
         ),
-        const SizedBox(width: 42), // Balance visual para centrar el título
+        const SizedBox(width: 42),
       ],
     );
   }

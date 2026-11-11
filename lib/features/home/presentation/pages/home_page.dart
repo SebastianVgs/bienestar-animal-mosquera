@@ -8,6 +8,7 @@ import 'package:bienestar_animal_app/features/reportes/presentation/pages/report
 import 'package:bienestar_animal_app/features/censo/presentation/pages/censo_page.dart';
 import 'package:bienestar_animal_app/features/veterinarias/presentation/pages/clinica_mapa_page.dart';
 import 'package:bienestar_animal_app/features/voluntariado/presentation/pages/voluntariado_page.dart';
+import 'package:bienestar_animal_app/features/admin/presentation/pages/admin_login_page.dart';
 
 // Lista de eventos simulados (Mock data) que luego vendrán de Supabase
 final List<Map<String, dynamic>> _proximosEventosMock = [
@@ -225,30 +226,36 @@ class HomePage extends StatelessWidget {
             ),
           ),
           Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: AppColors.circularButtonBackground,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: IconButton(
-              padding: EdgeInsets.zero,
-              icon: const Icon(
-                Icons.person,
-                size: 24,
-                color: AppColors.circularButtonIcon,
-              ),
-              tooltip: 'Perfil',
-              onPressed: () {},
-            ),
-          ),
+           width: 42,
+           height: 42,
+           decoration: BoxDecoration(
+             color: AppColors.circularButtonBackground,
+             shape: BoxShape.circle,
+             boxShadow: [
+               BoxShadow(
+                 color: Colors.black.withOpacity(0.06),
+                 blurRadius: 4,
+                 offset: const Offset(0, 2),
+               ),
+             ],
+           ),
+           child: IconButton(
+             padding: EdgeInsets.zero,
+             icon: const Icon(
+               Icons.admin_panel_settings_outlined, // CAMBIAMOS EL ICONO
+               size: 24,
+               color: AppColors.circularButtonIcon,
+             ),
+             tooltip: 'Acceso Funcionarios', // ACTUALIZAMOS EL TOOLTIP
+             onPressed: () {
+               // AÑADIMOS LA NAVEGACIÓN A LA PANTALLA DE LOGIN
+               Navigator.push(
+                 context,
+                 MaterialPageRoute(builder: (context) => const AdminLoginPage()),
+               );
+             },
+           ),
+         ),
         ],
       ),
     );
