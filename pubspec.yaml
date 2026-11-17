@@ -104,8 +104,7 @@ flutter:
 flutter_native_splash:
   color: "#ffffff"
   image: "assets/images/escudo_mosquera.png"
-  
-  # Desactivamos el comportamiento por defecto de Android 12
+
   android_12:
-    image: "assets/images/escudo_mosquera.png"
-    # Al no definir icon_background_color, evitamos el círculo forzado
+    image: "assets/images/escudo_android_splash.png"
+    icon_background_color: "#ffffff"

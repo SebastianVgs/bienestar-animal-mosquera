@@ -6,6 +6,7 @@ class CensoModel {
   final String nombreMascota;
   final String raza;
   final int edad;
+  final String unidadEdad; // 'Años' o 'Meses'
   final String sexo; // 'Macho' o 'Hembra'
   final String nombrePropietario;
   final String documentoPropietario;
@@ -19,6 +20,7 @@ class CensoModel {
     required this.nombreMascota,
     required this.raza,
     required this.edad,
+    this.unidadEdad = 'Años',
     required this.sexo,
     required this.nombrePropietario,
     required this.documentoPropietario,
@@ -27,13 +29,34 @@ class CensoModel {
     required this.fechaRegistro,
   });
 
+  factory CensoModel.fromJson(Map<String, dynamic> json) {
+    return CensoModel(
+      id: json['id']?.toString() ?? '',
+      especie: json['especie']?.toString() ?? 'Perro',
+      nombreMascota: json['nombre_mascota']?.toString() ?? 'Sin nombre',
+      raza: json['raza']?.toString() ?? 'Criollo',
+      edad: (json['edad'] is num)
+          ? (json['edad'] as num).toInt()
+          : int.tryParse(json['edad']?.toString() ?? '0') ?? 0,
+      unidadEdad: json['unidad_edad']?.toString() ?? 'Años',
+      sexo: json['sexo']?.toString() ?? 'Macho',
+      nombrePropietario: json['nombre_propietario']?.toString() ?? '',
+      documentoPropietario: json['documento_propietario']?.toString() ?? '',
+      telefono: json['telefono']?.toString() ?? '',
+      direccion: json['direccion']?.toString() ?? '',
+      fechaRegistro: json['fecha_registro'] != null
+          ? DateTime.tryParse(json['fecha_registro'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
-      // 'id': id, // OMITIMOS EL ID para que Supabase lo autogenere
       'especie': especie,
       'nombre_mascota': nombreMascota,
       'raza': raza,
       'edad': edad,
+      'unidad_edad': unidadEdad,
       'sexo': sexo,
       'nombre_propietario': nombrePropietario,
       'documento_propietario': documentoPropietario,
